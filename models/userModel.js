@@ -20,6 +20,10 @@ const userSchema = new schema({
     type: String,
     required: [true, "Password is required"],
   },
+  salt: {
+    type: String,
+    required: [true, "Salt is required"],
+  },
   phonenumber: {
     type: String,
     required: [true, "Phone number is required"],
