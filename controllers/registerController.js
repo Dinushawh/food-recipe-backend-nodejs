@@ -18,10 +18,7 @@ const registerController = {
             message: "Email already exists",
           });
         } else {
-          // Generate a salt
           const salt = crypto.randomBytes(16).toString("hex");
-          console.log(salt);
-          // Hash the password with the salt
           const hashedPassword = crypto
             .pbkdf2Sync(credentials, salt, 1000, 64, "sha512")
             .toString("hex");
