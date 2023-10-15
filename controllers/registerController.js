@@ -1,5 +1,5 @@
 const userModel = require("../models/userModel");
-const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 const registerController = {
   register: async (req, res) => {
@@ -8,29 +8,36 @@ const registerController = {
       if (!firstname || !lastname || !email || !credentials || !phonenumber) {
         return res.status(400).json({
           status: "error",
-          message: "all fields are required",
+          message: "All fields are required",
         });
       } else {
-        const isEmailExisit = await userModel.findOne({ email: email });
-        if (isEmailExisit) {
+        const isEmailExist = await userModel.findOne({ email: email });
+        if (isEmailExist) {
           return res.status(400).json({
             status: "error",
-            message: "email already exsist",
+            message: "Email already exists",
           });
         } else {
-          const salt = await bcrypt.genSalt(10);
-          const hashedPassword = await bcrypt.hash(credentials, salt);
+          // Generate a salt
+          const salt = crypto.randomBytes(16).toString("hex");
+          console.log(salt);
+          // Hash the password with the salt
+          const hashedPassword = crypto
+            .pbkdf2Sync(credentials, salt, 1000, 64, "sha512")
+            .toString("hex");
+
           const newUser = new userModel({
             firstname: firstname,
             lastname: lastname,
             email: email,
             password: hashedPassword,
             phonenumber: phonenumber,
+            salt: salt,
           });
           await newUser.save();
           return res.status(200).json({
             status: "success",
-            message: "user created",
+            message: "User created",
           });
         }
       }
