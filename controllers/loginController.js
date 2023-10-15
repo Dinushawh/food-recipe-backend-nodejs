@@ -1,6 +1,6 @@
 const user = require("../models/userModel");
-const bcrypt = require("bcrypt");
 const accessToken = require("../utils/accessTokens");
+const crypto = require("crypto");
 
 const loginController = {
   login: async (req, res) => {
@@ -12,29 +12,35 @@ const loginController = {
           message: "Please provide email and password",
         });
       } else {
-        const isUserExsist = await user.findOne({ email: email });
-        if (!isUserExsist) {
+        const isUserExist = await user.findOne({ email: email });
+        if (!isUserExist) {
           return res.status(400).json({
             status: "error",
             message: "User not found",
           });
         }
-        const comparePassword = await bcrypt.compare(
-          password,
-          isUserExsist.password
-        );
-        if (!comparePassword) {
+
+        const salt = isUserExist.salt;
+        console.log(salt);
+        const hashedPassword = crypto
+          .pbkdf2Sync(password, salt, 1000, 64, "sha512")
+          .toString("hex");
+
+        const storedPassword = isUserExist.password;
+
+        if (hashedPassword !== storedPassword) {
           return res.status(400).json({
             status: "error",
             message: "Password not match",
           });
         }
+
         const payload = {
-          id: isUserExsist._id,
-          email: isUserExsist.email,
-          firstname: isUserExsist.firstname,
-          lastname: isUserExsist.lastname,
-          phone: isUserExsist.phonenumber,
+          id: isUserExist._id,
+          email: isUserExist.email,
+          firstname: isUserExist.firstname,
+          lastname: isUserExist.lastname,
+          phone: isUserExist.phonenumber,
         };
         const token = accessToken.generateAccessToken(payload);
 
