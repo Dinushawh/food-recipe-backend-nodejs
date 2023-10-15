@@ -19,9 +19,7 @@ const loginController = {
             message: "User not found",
           });
         }
-
         const salt = isUserExist.salt;
-        console.log(salt);
         const hashedPassword = crypto
           .pbkdf2Sync(password, salt, 1000, 64, "sha512")
           .toString("hex");
